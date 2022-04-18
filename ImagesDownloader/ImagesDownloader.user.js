@@ -51,57 +51,88 @@ btnSwitcher.onclick = function () {
 uiRoot.appendChild(btnSwitcher);
 
 function CreateImages() {
-  let images = document.getElementsByTagName("img");
-  Array.from(images).forEach((image) => {
-    if ("getAttribute" in image && !image.getAttribute("tag")) {
+  let uiimages = document.getElementsByTagName("img");
+  Array.from(uiimages).forEach((uiimage) => {
+    if ("getAttribute" in uiimage && !uiimage.getAttribute("tag")) {
       let unid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
         let dt = new Date().getTime();
         let r = (dt + Math.random() * 16) % 16 | 0;
         dt = Math.floor(dt / 16);
         return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
       });
-      image.setAttribute("tag", unid);
+      let IMAGE = {};
+      IMAGE.isselect = true;
+      IMAGE.timer = null;
+      IMAGE.time = 0;
+      IMAGE.el = {};
+      uiimage.setAttribute("tag", unid);
+      IMAGE.ui = uiimage;
       let itemImage = document.createElement("div");
       itemImage.setAttribute("tag", unid);
       itemImage.setAttribute("class", "item-image");
       itemImage.setAttribute("href", "javascript:void(0)");
-      itemImage.onclick = function () {
-        let dlgPreview = document.createElement("div");
-        dlgPreview.setAttribute("class", "dlg-preview");
-        dlgPreview.onclick = function () {
-          dlgPreview.remove();
-        };
-        uiRoot.appendChild(dlgPreview);
-        let uiPreview = document.createElement("div");
-        uiPreview.setAttribute("class", "ui-preview");
-        dlgPreview.appendChild(uiPreview);
-        let icoPreview = document.createElement("img");
-        icoPreview.setAttribute("class", "ico-image");
-        icoPreview.setAttribute("src", image.src);
-        uiPreview.appendChild(icoPreview);
+      itemImage.ontouchstart = function () {
+        IMAGE.time = 0;
+        IMAGE.timer = setInterval(() => {
+          IMAGE.time += 20;
+        }, 20);
+      };
+      itemImage.ontouchend = function () {
+        if (IMAGE.timer != null) {
+          if (IMAGE.time >= 200) {
+            // On long press event.
+            let dlgPreview = document.createElement("div");
+            dlgPreview.setAttribute("class", "dlg-preview");
+            uiRoot.appendChild(dlgPreview);
+            let uiPreview = document.createElement("div");
+            uiPreview.setAttribute("class", "ui-preview");
+            dlgPreview.appendChild(uiPreview);
+            let icoPreview = document.createElement("img");
+            icoPreview.setAttribute("class", "ico-image");
+            icoPreview.setAttribute("src", uiimage.src);
+            uiPreview.appendChild(icoPreview);
+            let btnClose = document.createElement("a");
+            btnClose.setAttribute("class", "btn-close");
+            btnClose.setAttribute("href", "javascript:void(0)");
+            btnClose.onclick = function () {
+              dlgPreview.remove();
+            };
+            uiPreview.appendChild(btnClose);
+          } else {
+            // On single click event.
+            IMAGE.isselect = !IMAGE.isselect;
+            IMAGE.el.parent.style.border = IMAGE.isselect == true ? "solid 2px #ff0000" : "none";
+            IMAGE.el.child.style.backgroundColor = IMAGE.isselect == true ? "#00ff00" : "#a9a9a9";
+          }
+          IMAGE.time = 0;
+          clearInterval(IMAGE.timer);
+          IMAGE.timer = null;
+        }
       };
       listImages.appendChild(itemImage);
       let icoSelected = document.createElement("div");
       icoSelected.setAttribute("class", "ico-selected");
       itemImage.appendChild(icoSelected);
+      IMAGE.el.child = icoSelected;
       let icoImage = document.createElement("img");
       icoImage.setAttribute("tag", "myui");
       icoImage.setAttribute("class", "ico-image");
-      icoImage.setAttribute("src", image.src);
+      icoImage.setAttribute("src", uiimage.src);
       itemImage.appendChild(icoImage);
       let txtLink = document.createElement("div");
       txtLink.setAttribute("class", "txt-link");
-      txtLink.innerHTML = image.src;
+      txtLink.innerHTML = uiimage.src;
       itemImage.appendChild(txtLink);
-      IMAGES[unid] = { isselect: false, img: image, ui: itemImage };
+      IMAGE.el.parent = itemImage;
+      IMAGE[unid] = IMAGE;
     }
   });
 }
 
 function DestroyImages() {
   Object.keys(IMAGES).forEach((key) => {
-    IMAGES[key].img.removeAttribute("tag");
-    IMAGES[key].ui.remove();
+    IMAGES[key].ui.removeAttribute("tag");
+    IMAGES[key].el.parent.remove();
   });
   IMAGES = {};
 }

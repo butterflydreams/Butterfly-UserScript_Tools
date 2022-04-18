@@ -39,6 +39,7 @@
   margin: 5px auto;
   width: 100%;
   height: 20px;
+  border: solid 2px #ff0000;
   background-color: rgba(244, 161, 255, 0.3);
 }
 
@@ -49,7 +50,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #a9a9a9;
+  background-color: #00ff00;
 }
 
 .ui-panel .list-images .item-image .ico-image {
@@ -158,4 +159,17 @@
   width: 300px;
   max-height: 300px;
   border: solid 4px #89ff89;
+}
+
+.dlg-preview .ui-preview .btn-close {
+  display: block;
+  position: absolute;
+  margin: 0;
+  top: -15px;
+  right: -15px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: solid 2px #000000;
+  background-color: #a9a9a9;
 }
