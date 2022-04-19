@@ -1,39 +1,143 @@
 GM_addStyle(GM_getResourceText("Style"));
 
-var IMAGES = {};
+class Image {
+  constructor(unid, ui, elparent) {
+    this._unid = unid;
+    this._isselect = true;
+    this._timer = null;
+    this._time = 0;
+    this._x = 0;
+    this._y = 0;
+    this._ui = ui;
+    this._el = {};
+    this._el.root = document.createElement("div");
+    this._el.root.setAttribute("tag", this._unid);
+    this._el.root.setAttribute("class", "item-image");
+    this._el.root.setAttribute("href", "javascript:void(0)");
+    this._el.root.ontouchstart = this._OnTouchStart.bind(this);
+    this._el.root.ontouchmove = this._OnTouchMove.bind(this);
+    this._el.root.ontouchcancel = this._OnTouchCancel.bind(this);
+    this._el.root.ontouchend = this._OnTouchEnd.bind(this);
+    elparent.appendChild(this._el.root);
+    this._el.select = document.createElement("div");
+    this._el.select.setAttribute("class", "ico-selected");
+    this._el.root.appendChild(this._el.select);
+    this._el.icon = document.createElement("img");
+    this._el.icon.setAttribute("tag", "ui-mydownloader");
+    this._el.icon.setAttribute("class", "ico-image");
+    this._el.icon.setAttribute("src", this._ui.src);
+    this._el.root.appendChild(this._el.icon);
+    this._el.link = document.createElement("div");
+    this._el.link.setAttribute("class", "txt-link");
+    this._el.link.innerHTML = this._ui.src;
+    this._el.root.appendChild(this._el.link);
+  }
+
+  _OnTouchStart(event) {
+    this._x = event.touches[0].clientX;
+    this._y = event.touches[0].clientY;
+    this._time = 0;
+    this._timer = setInterval(() => {
+      this._time += 20;
+    }, 20);
+  }
+  _OnTouchMove(event) {
+    let x = event.touches[0].clientX;
+    let y = event.touches[0].clientY;
+    let distance = Math.sqrt(Math.pow(x - this._x, 2) + Math.pow(y - this._y, 2));
+    if (distance > 10) {
+      clearInterval(this._timer);
+      this._time = 0;
+      this._timer = null;
+    }
+  }
+  _OnTouchCancel(event) {
+    clearInterval(this._timer);
+    this._time = 0;
+    this._timer = null;
+  }
+  _OnTouchEnd(event) {
+    if (this._timer != null) {
+      if (this._time >= 200) {
+        // On long press event.
+        let dlgPreview = document.createElement("div");
+        dlgPreview.setAttribute("class", "dlg-preview");
+        dlgPreview.onclick = function () {
+          dlgPreview.remove();
+        };
+        UIROOT.appendChild(dlgPreview);
+        let uiPreview = document.createElement("div");
+        uiPreview.setAttribute("class", "ui-preview");
+        dlgPreview.appendChild(uiPreview);
+        let icoPreview = document.createElement("img");
+        icoPreview.setAttribute("class", "ico-image");
+        icoPreview.setAttribute("src", this._ui.src);
+        uiPreview.appendChild(icoPreview);
+        let btnClose = document.createElement("a");
+        btnClose.setAttribute("class", "btn-close");
+        btnClose.setAttribute("href", "javascript:void(0)");
+        btnClose.onclick = function () {
+          dlgPreview.remove();
+        };
+        uiPreview.appendChild(btnClose);
+      } else {
+        // On single click event.
+        this._isselect = !this._isselect;
+        this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
+        this._el.select.style.backgroundColor = this._isselect == true ? "#00ff00" : "#a9a9a9";
+      }
+    }
+  }
+}
+
+class Images {
+  constructor(elparent) {
+    this._data = new Map();
+    this._el = document.createElement("div");
+    this._el.setAttribute("class", "list-images");
+    elparent.appendChild(this._el);
+  }
+
+  static GetInstance(elparent) {
+    if (!this._instance) {
+      this._instance = new Images(elparent);
+    }
+    return this._instance;
+  }
+
+  CreateImages() {
+    let images = document.getElementsByTagName("img");
+    Array.from(images).forEach((image) => {
+      if ("getAttribute" in image && !image.getAttribute("tag")) {
+        let unid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+          let dt = new Date().getTime();
+          let r = (dt + Math.random() * 16) % 16 | 0;
+          dt = Math.floor(dt / 16);
+          return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
+        });
+        image.setAttribute("tag", unid);
+        this._data.set(unid, new Image(unid, image, this._el));
+      }
+    });
+  }
+
+  DestroyImages() {
+    this._data.forEach((value, key) => {
+      value._ui.removeAttribute("tag");
+      value._el.root.remove();
+    });
+  }
+}
+
+var UIROOT = document.createElement("div");
+UIROOT.setAttribute("class", "ui-imagesdownloader");
+document.body.appendChild(UIROOT);
 var IS_SHOW_PANEL = false;
-
-let uiRoot = document.createElement("div");
-uiRoot.setAttribute("class", "ui-imagesdownloader");
-document.body.appendChild(uiRoot);
-
 let uiPanel = document.createElement("div");
 uiPanel.setAttribute("class", "ui-panel");
 uiPanel.style.display = IS_SHOW_PANEL == true ? "block" : "none";
-uiRoot.appendChild(uiPanel);
-
-let listImages = document.createElement("div");
-listImages.setAttribute("class", "list-images");
-uiPanel.appendChild(listImages);
-
-let uiControl = document.createElement("div");
-uiControl.setAttribute("class", "ui-control");
-uiPanel.appendChild(uiControl);
-let btnRefresh = document.createElement("a");
-btnRefresh.setAttribute("class", "btn-refresh");
-btnRefresh.setAttribute("href", "javascript:void(0)");
-btnRefresh.innerHTML = "Refresh";
-btnRefresh.onclick = function () {
-  CreateImages();
-};
-uiControl.appendChild(btnRefresh);
-let btnSettings = document.createElement("a");
-btnSettings.setAttribute("class", "btn-settings");
-btnSettings.setAttribute("href", "javascript:void(0)");
-btnSettings.innerHTML = "Settings";
-btnSettings.onclick = function () {};
-uiControl.appendChild(btnSettings);
-
+UIROOT.appendChild(uiPanel);
+var IMAGES = Images.GetInstance(uiPanel);
 let btnSwitcher = document.createElement("a");
 btnSwitcher.setAttribute("class", "btn-switcher");
 btnSwitcher.setAttribute("href", "javascript:void(0)");
@@ -43,122 +147,15 @@ btnSwitcher.onclick = function () {
   btnSwitcher.innerHTML = IS_SHOW_PANEL == true ? "Hide" : "Show";
   uiPanel.style.display = IS_SHOW_PANEL == true ? "block" : "none";
   if (IS_SHOW_PANEL == true) {
-    CreateImages();
+    IMAGES.CreateImages();
   } else {
-    DestroyImages();
+    IMAGES.DestroyImages();
   }
 };
-uiRoot.appendChild(btnSwitcher);
-
-function CreateImages() {
-  let uiimages = document.getElementsByTagName("img");
-  Array.from(uiimages).forEach((uiimage) => {
-    if ("getAttribute" in uiimage && !uiimage.getAttribute("tag")) {
-      let unid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        let dt = new Date().getTime();
-        let r = (dt + Math.random() * 16) % 16 | 0;
-        dt = Math.floor(dt / 16);
-        return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
-      });
-      let IMAGE = {};
-      IMAGE.isselect = true;
-      IMAGE.timer = null;
-      IMAGE.time = 0;
-      IMAGE.el = {};
-      uiimage.setAttribute("tag", unid);
-      IMAGE.ui = uiimage;
-      let itemImage = document.createElement("div");
-      itemImage.setAttribute("tag", unid);
-      itemImage.setAttribute("class", "item-image");
-      itemImage.setAttribute("href", "javascript:void(0)");
-      itemImage.ontouchstart = function (event) {
-        IMAGE.x = event.touches[0].clientX;
-        IMAGE.y = event.touches[0].clientY;
-        IMAGE.time = 0;
-        IMAGE.timer = setInterval(() => {
-          IMAGE.time += 20;
-        }, 20);
-      };
-      itemImage.ontouchmove = function (event) {
-        let x = event.touches[0].clientX;
-        let y = event.touches[0].clientY;
-        let distance = Math.sqrt(Math.pow(x - IMAGE.x, 2) + Math.pow(y - IMAGE.y, 2));
-        if (distance > 10) {
-          IMAGE.time = 0;
-          clearInterval(IMAGE.timer);
-          IMAGE.timer = null;
-        }
-      };
-      itemImage.ontouchcancel = function () {
-        IMAGE.time = 0;
-        clearInterval(IMAGE.timer);
-        IMAGE.timer = null;
-      };
-      itemImage.ontouchend = function () {
-        if (IMAGE.timer != null) {
-          if (IMAGE.time >= 200) {
-            // On long press event.
-            let dlgPreview = document.createElement("div");
-            dlgPreview.setAttribute("class", "dlg-preview");
-            dlgPreview.onclick = function () {
-              dlgPreview.remove();
-            };
-            uiRoot.appendChild(dlgPreview);
-            let uiPreview = document.createElement("div");
-            uiPreview.setAttribute("class", "ui-preview");
-            dlgPreview.appendChild(uiPreview);
-            let icoPreview = document.createElement("img");
-            icoPreview.setAttribute("class", "ico-image");
-            icoPreview.setAttribute("src", uiimage.src);
-            uiPreview.appendChild(icoPreview);
-            let btnClose = document.createElement("a");
-            btnClose.setAttribute("class", "btn-close");
-            btnClose.setAttribute("href", "javascript:void(0)");
-            btnClose.onclick = function () {
-              dlgPreview.remove();
-            };
-            uiPreview.appendChild(btnClose);
-          } else {
-            // On single click event.
-            IMAGE.isselect = !IMAGE.isselect;
-            IMAGE.el.parent.style.border = IMAGE.isselect == true ? "solid 2px #ff0000" : "none";
-            IMAGE.el.child.style.backgroundColor = IMAGE.isselect == true ? "#00ff00" : "#a9a9a9";
-          }
-          IMAGE.time = 0;
-          clearInterval(IMAGE.timer);
-          IMAGE.timer = null;
-        }
-      };
-      listImages.appendChild(itemImage);
-      let icoSelected = document.createElement("div");
-      icoSelected.setAttribute("class", "ico-selected");
-      itemImage.appendChild(icoSelected);
-      IMAGE.el.child = icoSelected;
-      let icoImage = document.createElement("img");
-      icoImage.setAttribute("tag", "myui");
-      icoImage.setAttribute("class", "ico-image");
-      icoImage.setAttribute("src", uiimage.src);
-      itemImage.appendChild(icoImage);
-      let txtLink = document.createElement("div");
-      txtLink.setAttribute("class", "txt-link");
-      txtLink.innerHTML = uiimage.src;
-      itemImage.appendChild(txtLink);
-      IMAGE.el.parent = itemImage;
-      IMAGE[unid] = IMAGE;
-    }
-  });
-}
-
-function DestroyImages() {
-  Object.keys(IMAGES).forEach((key) => {
-    IMAGES[key].ui.removeAttribute("tag");
-    IMAGES[key].el.parent.remove();
-  });
-  IMAGES = {};
-}
+UIROOT.appendChild(btnSwitcher);
 
 window.onscroll = function () {
   if (IS_SHOW_PANEL == true) {
-    CreateImages();
+    IMAGES.CreateImages();
   }
 };
