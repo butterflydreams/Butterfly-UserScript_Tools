@@ -71,11 +71,28 @@ function CreateImages() {
       itemImage.setAttribute("tag", unid);
       itemImage.setAttribute("class", "item-image");
       itemImage.setAttribute("href", "javascript:void(0)");
-      itemImage.ontouchstart = function () {
+      itemImage.ontouchstart = function (event) {
+        IMAGE.x = event.touches[0].clientX;
+        IMAGE.y = event.touches[0].clientY;
         IMAGE.time = 0;
         IMAGE.timer = setInterval(() => {
           IMAGE.time += 20;
         }, 20);
+      };
+      itemImage.ontouchmove = function (event) {
+        let x = event.touches[0].clientX;
+        let y = event.touches[0].clientY;
+        let distance = Math.sqrt(Math.pow(x - IMAGE.x, 2) + Math.pow(y - IMAGE.y, 2));
+        if (distance > 10) {
+          IMAGE.time = 0;
+          clearInterval(IMAGE.timer);
+          IMAGE.timer = null;
+        }
+      };
+      itemImage.ontouchcancel = function () {
+        IMAGE.time = 0;
+        clearInterval(IMAGE.timer);
+        IMAGE.timer = null;
       };
       itemImage.ontouchend = function () {
         if (IMAGE.timer != null) {
@@ -83,6 +100,9 @@ function CreateImages() {
             // On long press event.
             let dlgPreview = document.createElement("div");
             dlgPreview.setAttribute("class", "dlg-preview");
+            dlgPreview.onclick = function () {
+              dlgPreview.remove();
+            };
             uiRoot.appendChild(dlgPreview);
             let uiPreview = document.createElement("div");
             uiPreview.setAttribute("class", "ui-preview");
