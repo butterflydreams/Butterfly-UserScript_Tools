@@ -86,6 +86,9 @@ class Image {
         this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
         this._el.select.style.backgroundColor = this._isselect == true ? "#00ff00" : "#a9a9a9";
       }
+      clearInterval(this._timer);
+      this._time = 0;
+      this._timer = null;
     }
   }
 }
@@ -126,6 +129,7 @@ class Images {
       value._ui.removeAttribute("tag");
       value._el.root.remove();
     });
+    this._data.clear();
   }
 }
 
