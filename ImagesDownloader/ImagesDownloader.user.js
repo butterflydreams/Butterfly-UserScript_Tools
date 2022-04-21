@@ -68,26 +68,28 @@ class Image {
     if (this._timer != null) {
       if (this._time >= 200) {
         // On long press event.
-        let dlgPreview = document.createElement("div");
-        dlgPreview.setAttribute("class", "dlg-preview");
-        dlgPreview.onclick = function () {
-          dlgPreview.remove();
-        };
-        UIROOT.appendChild(dlgPreview);
-        let uiPreview = document.createElement("div");
-        uiPreview.setAttribute("class", "ui-preview");
-        dlgPreview.appendChild(uiPreview);
-        let icoPreview = document.createElement("img");
-        icoPreview.setAttribute("class", "ico-image");
-        icoPreview.setAttribute("src", this._ui.src);
-        uiPreview.appendChild(icoPreview);
-        let btnClose = document.createElement("a");
-        btnClose.setAttribute("class", "btn-close");
-        btnClose.setAttribute("href", "javascript:void(0)");
-        btnClose.onclick = function () {
-          dlgPreview.remove();
-        };
-        uiPreview.appendChild(btnClose);
+        setTimeout(() => {
+          let dlgPreview = document.createElement("div");
+          dlgPreview.setAttribute("class", "dlg-preview");
+          dlgPreview.onclick = function () {
+            dlgPreview.remove();
+          };
+          UIROOT.appendChild(dlgPreview);
+          let uiPreview = document.createElement("div");
+          uiPreview.setAttribute("class", "ui-preview");
+          dlgPreview.appendChild(uiPreview);
+          let icoPreview = document.createElement("img");
+          icoPreview.setAttribute("class", "ico-image");
+          icoPreview.setAttribute("src", this._ui.src);
+          uiPreview.appendChild(icoPreview);
+          let btnClose = document.createElement("a");
+          btnClose.setAttribute("class", "btn-close");
+          btnClose.setAttribute("href", "javascript:void(0)");
+          btnClose.onclick = function () {
+            dlgPreview.remove();
+          };
+          uiPreview.appendChild(btnClose);
+        }, 100);
       } else {
         // On single click event.
         this._isselect = !this._isselect;
