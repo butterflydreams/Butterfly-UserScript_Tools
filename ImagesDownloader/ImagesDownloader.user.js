@@ -14,10 +14,21 @@ class Image {
     this._el.root.setAttribute("tag", this._unid);
     this._el.root.setAttribute("class", "item-image");
     this._el.root.setAttribute("href", "javascript:void(0)");
-    this._el.root.ontouchstart = this._OnTouchStart.bind(this);
-    this._el.root.ontouchmove = this._OnTouchMove.bind(this);
-    this._el.root.ontouchcancel = this._OnTouchCancel.bind(this);
-    this._el.root.ontouchend = this._OnTouchEnd.bind(this);
+    if ("ontouchstart" in document.documentElement) {
+      this._el.root.ontouchstart = this._OnEventStart.bind(this, true);
+    } else {
+      this._el.root.onmousedown = this._OnEventStart.bind(this, false);
+    }
+    if ("ontouchmove" in document.documentElement) {
+      this._el.root.ontouchmove = this._OnEventMove.bind(this, false);
+    } else {
+      this._el.root.onmousemove = this._OnEventMove.bind(this, true);
+    }
+    if ("ontouchend" in document.documentElement) {
+      this._el.root.ontouchend = this._OnEventEnd.bind(this);
+    } else {
+      this._el.root.onmouseup = this._OnEventEnd.bind(this);
+    }
     elparent.appendChild(this._el.root);
     this._el.select = document.createElement("div");
     this._el.select.setAttribute("class", "ico-selected");
@@ -33,17 +44,17 @@ class Image {
     this._el.root.appendChild(this._el.link);
   }
 
-  _OnTouchStart(event) {
-    this._x = event.touches[0].clientX;
-    this._y = event.touches[0].clientY;
+  _OnEventStart(istouch, event) {
+    this._x = istouch == true ? event.touches[0].clientX : event.clientX;
+    this._y = istouch == true ? event.touches[0].clientY : event.clientY;
     this._time = 0;
     this._timer = setInterval(() => {
       this._time += 20;
     }, 20);
   }
-  _OnTouchMove(event) {
-    let x = event.touches[0].clientX;
-    let y = event.touches[0].clientY;
+  _OnEventMove(istouch, event) {
+    let x = istouch == true ? event.touches[0].clientX : event.clientX;
+    let y = istouch == true ? event.touches[0].clientY : event.clientY;
     let distance = Math.sqrt(Math.pow(x - this._x, 2) + Math.pow(y - this._y, 2));
     if (distance > 10) {
       clearInterval(this._timer);
@@ -53,14 +64,7 @@ class Image {
       this._y = 0;
     }
   }
-  _OnTouchCancel(event) {
-    clearInterval(this._timer);
-    this._time = 0;
-    this._timer = null;
-    this._x = 0;
-    this._y = 0;
-  }
-  _OnTouchEnd(event) {
+  _OnEventEnd() {
     if (this._timer != null) {
       if (this._time >= 200) {
         // On long press event.
