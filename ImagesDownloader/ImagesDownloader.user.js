@@ -49,12 +49,16 @@ class Image {
       clearInterval(this._timer);
       this._time = 0;
       this._timer = null;
+      this._x = 0;
+      this._y = 0;
     }
   }
   _OnTouchCancel(event) {
     clearInterval(this._timer);
     this._time = 0;
     this._timer = null;
+    this._x = 0;
+    this._y = 0;
   }
   _OnTouchEnd(event) {
     if (this._timer != null) {
@@ -89,6 +93,8 @@ class Image {
       clearInterval(this._timer);
       this._time = 0;
       this._timer = null;
+      this._x = 0;
+      this._y = 0;
     }
   }
 }
