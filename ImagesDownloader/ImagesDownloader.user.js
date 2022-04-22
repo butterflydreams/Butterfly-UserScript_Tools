@@ -1,16 +1,11 @@
 GM_addStyle(GM_getResourceText("Style"));
 
-const LONG_PRESS_STEP = 20;
-const LONG_PRESS_TIME = 200;
-const LONG_PRESS_DISTANCE = 10;
 class Image {
   constructor(unid, ui, elparent) {
     this._unid = unid;
     this._isselect = true;
-    this._timer = null;
     this._time = 0;
-    this._x = 0;
-    this._y = 0;
+    this._delay = 200;
     this._ui = ui;
     this._el = {};
     this._el.root = document.createElement("div");
@@ -21,11 +16,6 @@ class Image {
       this._el.root.ontouchstart = this._OnStartEvent.bind(this, true);
     } else {
       this._el.root.onmousedown = this._OnStartEvent.bind(this, false);
-    }
-    if ("ontouchmove" in document.documentElement == true) {
-      this._el.root.ontouchmove = this._OnMoveEvent.bind(this, true);
-    } else {
-      this._el.root.onmousemove = this._OnMoveEvent.bind(this, false);
     }
     if ("ontouchend" in document.documentElement == true) {
       this._el.root.ontouchend = this._OnEndEvent.bind(this);
@@ -48,63 +38,38 @@ class Image {
   }
 
   _OnStartEvent(istouch, event) {
-    this._x = istouch == true ? event.touches[0].clientX : event.clientX;
-    this._y = istouch == true ? event.touches[0].clientY : event.clientY;
-    this._time = 0;
-    this._timer = setInterval(() => {
-      this._time += LONG_PRESS_STEP;
-    }, LONG_PRESS_STEP);
-  }
-  _OnMoveEvent(istouch, event) {
-    let x = istouch == true ? event.touches[0].clientX : event.clientX;
-    let y = istouch == true ? event.touches[0].clientY : event.clientY;
-    let distance = Math.sqrt(Math.pow(x - this._x, 2) + Math.pow(y - this._y, 2));
-    if (distance > LONG_PRESS_DISTANCE) {
-      clearInterval(this._timer);
-      this._time = 0;
-      this._timer = null;
-      this._x = 0;
-      this._y = 0;
-    }
+    this._time = Date.now();
   }
   _OnEndEvent() {
-    if (this._timer != null) {
-      if (this._time >= LONG_PRESS_TIME) {
-        // On long press event.
-        setTimeout(() => {
-          let dlgPreview = document.createElement("div");
-          dlgPreview.setAttribute("class", "dlg-preview");
-          dlgPreview.onclick = function () {
-            dlgPreview.remove();
-          };
-          UIROOT.appendChild(dlgPreview);
-          let uiPreview = document.createElement("div");
-          uiPreview.setAttribute("class", "ui-preview");
-          dlgPreview.appendChild(uiPreview);
-          let icoPreview = document.createElement("img");
-          icoPreview.setAttribute("class", "ico-image");
-          icoPreview.setAttribute("src", this._ui.src);
-          uiPreview.appendChild(icoPreview);
-          let btnClose = document.createElement("a");
-          btnClose.setAttribute("class", "btn-close");
-          btnClose.setAttribute("href", "javascript:void(0)");
-          btnClose.onclick = function () {
-            dlgPreview.remove();
-          };
-          uiPreview.appendChild(btnClose);
-        }, 100);
-      } else {
-        // On single click event.
-        this._isselect = !this._isselect;
-        this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
-        this._el.select.style.backgroundColor = this._isselect == true ? "#00ff00" : "#a9a9a9";
-      }
-      clearInterval(this._timer);
-      this._time = 0;
-      this._timer = null;
-      this._x = 0;
-      this._y = 0;
+    if (Date.now() - this._time >= this._delay) {
+      setTimeout(() => {
+        let dlgPreview = document.createElement("div");
+        dlgPreview.setAttribute("class", "dlg-preview");
+        dlgPreview.onclick = function () {
+          dlgPreview.remove();
+        };
+        UIROOT.appendChild(dlgPreview);
+        let uiPreview = document.createElement("div");
+        uiPreview.setAttribute("class", "ui-preview");
+        dlgPreview.appendChild(uiPreview);
+        let icoPreview = document.createElement("img");
+        icoPreview.setAttribute("class", "ico-image");
+        icoPreview.setAttribute("src", this._ui.src);
+        uiPreview.appendChild(icoPreview);
+        let btnClose = document.createElement("a");
+        btnClose.setAttribute("class", "btn-close");
+        btnClose.setAttribute("href", "javascript:void(0)");
+        btnClose.onclick = function () {
+          dlgPreview.remove();
+        };
+        uiPreview.appendChild(btnClose);
+      }, 100);
+    } else {
+      this._isselect = !this._isselect;
+      this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
+      this._el.select.style.backgroundColor = this._isselect == true ? "#00ff00" : "#a9a9a9";
     }
+    this._time = 0;
   }
 }
 
