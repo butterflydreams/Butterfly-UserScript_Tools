@@ -1,5 +1,8 @@
 GM_addStyle(GM_getResourceText("Style"));
 
+const LONG_PRESS_STEP = 20;
+const LONG_PRESS_TIME = 200;
+const LONG_PRESS_DISTANCE = 10;
 class Image {
   constructor(unid, ui, elparent) {
     this._unid = unid;
@@ -49,14 +52,14 @@ class Image {
     this._y = istouch == true ? event.touches[0].clientY : event.clientY;
     this._time = 0;
     this._timer = setInterval(() => {
-      this._time += 20;
-    }, 20);
+      this._time += LONG_PRESS_STEP;
+    }, LONG_PRESS_STEP);
   }
   _OnMoveEvent(istouch, event) {
     let x = istouch == true ? event.touches[0].clientX : event.clientX;
     let y = istouch == true ? event.touches[0].clientY : event.clientY;
     let distance = Math.sqrt(Math.pow(x - this._x, 2) + Math.pow(y - this._y, 2));
-    if (distance > 10) {
+    if (distance > LONG_PRESS_DISTANCE) {
       clearInterval(this._timer);
       this._time = 0;
       this._timer = null;
@@ -66,7 +69,7 @@ class Image {
   }
   _OnEndEvent() {
     if (this._timer != null) {
-      if (this._time >= 200) {
+      if (this._time >= LONG_PRESS_TIME) {
         // On long press event.
         setTimeout(() => {
           let dlgPreview = document.createElement("div");
