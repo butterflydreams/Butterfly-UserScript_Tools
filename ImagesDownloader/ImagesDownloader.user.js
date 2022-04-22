@@ -8,19 +8,19 @@ class Image {
     this._delay = 200;
     this._ui = ui;
     this._el = {};
-    this._el.root = document.createElement("div");
+    this._el.root = document.createElement("a");
     this._el.root.setAttribute("tag", this._unid);
     this._el.root.setAttribute("class", "item-image");
     this._el.root.setAttribute("href", "javascript:void(0)");
     if ("ontouchstart" in document.documentElement == true) {
-      this._el.root.ontouchstart = this._OnStartEvent.bind(this, true);
+      this._el.root.ontouchstart = this._OnStartHandler.bind(this, true);
     } else {
-      this._el.root.onmousedown = this._OnStartEvent.bind(this, false);
+      this._el.root.onmousedown = this._OnStartHandler.bind(this, false);
     }
     if ("ontouchend" in document.documentElement == true) {
-      this._el.root.ontouchend = this._OnEndEvent.bind(this);
+      this._el.root.ontouchend = this._OnEndHandler.bind(this);
     } else {
-      this._el.root.onmouseup = this._OnEndEvent.bind(this);
+      this._el.root.onmouseup = this._OnEndHandler.bind(this);
     }
     elparent.appendChild(this._el.root);
     this._el.select = document.createElement("div");
@@ -37,10 +37,10 @@ class Image {
     this._el.root.appendChild(this._el.link);
   }
 
-  _OnStartEvent(istouch, event) {
+  _OnStartHandler(istouch, event) {
     this._time = Date.now();
   }
-  _OnEndEvent() {
+  _OnEndHandler() {
     if (Date.now() - this._time >= this._delay) {
       setTimeout(() => {
         let dlgPreview = document.createElement("div");
