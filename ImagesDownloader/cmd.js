@@ -16,6 +16,7 @@ let file = `// ==UserScript==
 // @description  Download all images on a Webpage one key.
 // @author       Butterfly
 // @match        *://*/*
+// @require      https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js
 // @grant        GM_addStyle
 // ==/UserScript==
 

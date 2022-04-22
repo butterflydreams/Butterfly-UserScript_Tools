@@ -4,24 +4,21 @@ class Image {
   constructor(unid, ui, elparent) {
     this._unid = unid;
     this._isselect = true;
-    this._time = 0;
-    this._delay = 200;
     this._ui = ui;
     this._el = {};
     this._el.root = document.createElement("a");
     this._el.root.setAttribute("tag", this._unid);
     this._el.root.setAttribute("class", "item-image");
     this._el.root.setAttribute("href", "javascript:void(0)");
-    if ("ontouchstart" in document.documentElement == true) {
-      this._el.root.ontouchstart = this._OnStartHandler.bind(this, true);
-    } else {
-      this._el.root.onmousedown = this._OnStartHandler.bind(this, false);
-    }
-    if ("ontouchend" in document.documentElement == true) {
-      this._el.root.ontouchend = this._OnEndHandler.bind(this);
-    } else {
-      this._el.root.onmouseup = this._OnEndHandler.bind(this);
-    }
+    this._gesture = new Hammer.Manager(this._el.root);
+    this._gesture.add(new Hammer.Tap({ event: "doubletap", taps: 2 }));
+    this._gesture.add(new Hammer.Tap({ event: "singletap" }));
+    this._gesture.add(new Hammer.Press({ event: "press" }));
+    this._gesture.get("doubletap").recognizeWith("singletap");
+    this._gesture.get("singletap").requireFailure("doubletap");
+    this._gesture.on("singletap", this._OnClickHandler.bind(this));
+    this._gesture.on("doubletap", this._OnDoubleclickHandler.bind(this));
+    this._gesture.on("press", this._OnPressHandler.bind(this));
     elparent.appendChild(this._el.root);
     this._el.select = document.createElement("div");
     this._el.select.setAttribute("class", "ico-selected");
@@ -37,40 +34,34 @@ class Image {
     this._el.root.appendChild(this._el.link);
   }
 
-  _OnStartHandler(istouch, event) {
-    this._time = Date.now();
+  _OnClickHandler(event) {
+    this._isselect = !this._isselect;
+    this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
+    this._el.select.style.backgroundColor = this._isselect == true ? "#00ff00" : "#a9a9a9";
   }
-  _OnEndHandler() {
-    if (Date.now() - this._time >= this._delay) {
-      setTimeout(() => {
-        let dlgPreview = document.createElement("div");
-        dlgPreview.setAttribute("class", "dlg-preview");
-        dlgPreview.onclick = function () {
-          dlgPreview.remove();
-        };
-        UIROOT.appendChild(dlgPreview);
-        let uiPreview = document.createElement("div");
-        uiPreview.setAttribute("class", "ui-preview");
-        dlgPreview.appendChild(uiPreview);
-        let icoPreview = document.createElement("img");
-        icoPreview.setAttribute("class", "ico-image");
-        icoPreview.setAttribute("src", this._ui.src);
-        uiPreview.appendChild(icoPreview);
-        let btnClose = document.createElement("a");
-        btnClose.setAttribute("class", "btn-close");
-        btnClose.setAttribute("href", "javascript:void(0)");
-        btnClose.onclick = function () {
-          dlgPreview.remove();
-        };
-        uiPreview.appendChild(btnClose);
-      }, 100);
-    } else {
-      this._isselect = !this._isselect;
-      this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
-      this._el.select.style.backgroundColor = this._isselect == true ? "#00ff00" : "#a9a9a9";
-    }
-    this._time = 0;
+  _OnDoubleclickHandler(event) {
+    let dlgPreview = document.createElement("div");
+    dlgPreview.setAttribute("class", "dlg-preview");
+    dlgPreview.onclick = function () {
+      dlgPreview.remove();
+    };
+    UIROOT.appendChild(dlgPreview);
+    let uiPreview = document.createElement("div");
+    uiPreview.setAttribute("class", "ui-preview");
+    dlgPreview.appendChild(uiPreview);
+    let icoPreview = document.createElement("img");
+    icoPreview.setAttribute("class", "ico-image");
+    icoPreview.setAttribute("src", this._ui.src);
+    uiPreview.appendChild(icoPreview);
+    let btnClose = document.createElement("a");
+    btnClose.setAttribute("class", "btn-close");
+    btnClose.setAttribute("href", "javascript:void(0)");
+    btnClose.onclick = function () {
+      dlgPreview.remove();
+    };
+    uiPreview.appendChild(btnClose);
   }
+  _OnPressHandler(event) {}
 }
 
 class Images {
@@ -136,6 +127,28 @@ btnSwitcher.onclick = function () {
     IMAGES.DestroyImages();
   }
 };
+let dragx = 0;
+let dragy = 0;
+let isdrag = false;
+let drag = new Hammer(btnSwitcher);
+drag.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 }));
+drag.on("pan", function (event) {
+  let target = event.target;
+  if (isdrag == false) {
+    isdrag = true;
+    dragx = target.offsetLeft;
+    dragy = target.offsetTop;
+  }
+  let x = event.deltaX + dragx;
+  let y = event.deltaY + dragy;
+  target.style.right = Math.abs(x) - 40 + "px";
+  target.style.bottom = Math.abs(y) - 40 + "px";
+  uiPanel.style.right = Math.abs(x) - 40 + "px";
+  uiPanel.style.bottom = Math.abs(y) + 10 + "px";
+  if (event.isFinal == true) {
+    isdrag = false;
+  }
+});
 UIROOT.appendChild(btnSwitcher);
 
 window.onscroll = function () {

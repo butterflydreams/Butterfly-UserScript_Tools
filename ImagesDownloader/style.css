@@ -8,11 +8,31 @@
   z-index: 9999;
 }
 
+.btn-switcher {
+  display: block;
+  position: absolute;
+  margin: 0;
+  bottom: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border: solid 2px #000000;
+  border-radius: 50%;
+  background-color: #7effd0;
+  line-height: 40px;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  color: #000000;
+}
+
 .ui-panel {
   display: none;
   overflow: hidden;
-  position: relative;
+  position: absolute;
   margin: 0;
+  bottom: 50px;
+  right: 0;
   width: 220px;
   border: solid 2px #ff83d0;
   border-radius: 10px;
@@ -76,22 +96,6 @@
   text-overflow: ellipsis;
   text-align: left;
   color: #ffffff;
-}
-
-.btn-switcher {
-  display: block;
-  position: relative;
-  margin-left: auto;
-  width: 40px;
-  height: 40px;
-  border: solid 2px #000000;
-  border-radius: 50%;
-  background-color: #7effd0;
-  line-height: 40px;
-  font-size: 13px;
-  font-weight: bold;
-  text-align: center;
-  color: #000000;
 }
 
 .dlg-preview {
