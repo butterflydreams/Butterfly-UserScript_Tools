@@ -14,20 +14,20 @@ class Image {
     this._el.root.setAttribute("tag", this._unid);
     this._el.root.setAttribute("class", "item-image");
     this._el.root.setAttribute("href", "javascript:void(0)");
-    if ("ontouchstart" in document.documentElement) {
-      this._el.root.ontouchstart = this._OnEventStart.bind(this, true);
+    if ("ontouchstart" in document.documentElement == true) {
+      this._el.root.ontouchstart = this._OnStartEvent.bind(this, true);
     } else {
-      this._el.root.onmousedown = this._OnEventStart.bind(this, false);
+      this._el.root.onmousedown = this._OnStartEvent.bind(this, false);
     }
-    if ("ontouchmove" in document.documentElement) {
-      this._el.root.ontouchmove = this._OnEventMove.bind(this, false);
+    if ("ontouchmove" in document.documentElement == true) {
+      this._el.root.ontouchmove = this._OnMoveEvent.bind(this, true);
     } else {
-      this._el.root.onmousemove = this._OnEventMove.bind(this, true);
+      this._el.root.onmousemove = this._OnMoveEvent.bind(this, false);
     }
-    if ("ontouchend" in document.documentElement) {
-      this._el.root.ontouchend = this._OnEventEnd.bind(this);
+    if ("ontouchend" in document.documentElement == true) {
+      this._el.root.ontouchend = this._OnEndEvent.bind(this);
     } else {
-      this._el.root.onmouseup = this._OnEventEnd.bind(this);
+      this._el.root.onmouseup = this._OnEndEvent.bind(this);
     }
     elparent.appendChild(this._el.root);
     this._el.select = document.createElement("div");
@@ -44,7 +44,7 @@ class Image {
     this._el.root.appendChild(this._el.link);
   }
 
-  _OnEventStart(istouch, event) {
+  _OnStartEvent(istouch, event) {
     this._x = istouch == true ? event.touches[0].clientX : event.clientX;
     this._y = istouch == true ? event.touches[0].clientY : event.clientY;
     this._time = 0;
@@ -52,7 +52,7 @@ class Image {
       this._time += 20;
     }, 20);
   }
-  _OnEventMove(istouch, event) {
+  _OnMoveEvent(istouch, event) {
     let x = istouch == true ? event.touches[0].clientX : event.clientX;
     let y = istouch == true ? event.touches[0].clientY : event.clientY;
     let distance = Math.sqrt(Math.pow(x - this._x, 2) + Math.pow(y - this._y, 2));
@@ -64,7 +64,7 @@ class Image {
       this._y = 0;
     }
   }
-  _OnEventEnd() {
+  _OnEndEvent() {
     if (this._timer != null) {
       if (this._time >= 200) {
         // On long press event.
