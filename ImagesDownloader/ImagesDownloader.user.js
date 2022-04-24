@@ -53,6 +53,22 @@ class UIImage {
       this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
     } else {
       // Scrolling.
+      let offset = this._ui.getBoundingClientRect().top - this._ui.getBoundingClientRect().height + window.scrollY;
+      let position = offset > 0 ? offset : 0;
+      window.scrollTo({
+        top: position,
+        behavior: "smooth"
+      });
+      let isreach = true;
+      function OnReach() {
+        this._ui.style.animation = "none";
+        if (isreach == true && Math.abs(window.scrollY - position) <= 1) {
+          this._ui.style.animation = "ani-scrollto 1000ms";
+          isreach = false;
+        }
+      }
+      OnReach.bind(this)();
+      window.onscroll = OnReach.bind(this);
     }
   }
   _OnDoubleclickHandler(event) {
@@ -146,14 +162,6 @@ UIROOT.appendChild(uiPanel);
 let uiControllers = document.createElement("div");
 uiControllers.setAttribute("class", "ui-controllers");
 uiPanel.appendChild(uiControllers);
-let btnSetting = document.createElement("a");
-btnSetting.setAttribute("class", "btn-setting");
-btnSetting.setAttribute("href", "javascript:void(0)");
-btnSetting.innerText = "Setting";
-btnSetting.onclick = function () {
-  console.log("On setting!");
-};
-uiControllers.appendChild(btnSetting);
 let btnEdit = document.createElement("a");
 btnEdit.setAttribute("class", "btn-edit");
 btnEdit.setAttribute("href", "javascript:void(0)");
@@ -163,6 +171,14 @@ btnEdit.onclick = function () {
   btnEdit.innerText = IS_EDIT_MODE == true ? "Unedit" : "Edit";
 };
 uiControllers.appendChild(btnEdit);
+let btnSetting = document.createElement("a");
+btnSetting.setAttribute("class", "btn-setting");
+btnSetting.setAttribute("href", "javascript:void(0)");
+btnSetting.innerText = "Setting";
+btnSetting.onclick = function () {
+  console.log("On setting!");
+};
+uiControllers.appendChild(btnSetting);
 let btnDownload = document.createElement("a");
 btnDownload.setAttribute("class", "btn-download");
 btnDownload.setAttribute("href", "javascript:void(0)");

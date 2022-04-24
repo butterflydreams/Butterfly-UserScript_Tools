@@ -1,3 +1,21 @@
+@keyframes ani-scrollto {
+  0% {
+    border: solid 4px #ff0000;
+  }
+  25% {
+    border: solid 4px transparent;
+  }
+  50% {
+    border: solid 4px #ff0000;
+  }
+  75% {
+    border: solid 4px transparent;
+  }
+  100% {
+    border: solid 4px #ff0000;
+  }
+}
+
 .ui-imagesdownloader {
   position: fixed;
   margin: 0;
@@ -50,7 +68,7 @@
   background-color: #ffdd00;
 }
 
-.ui-panel .ui-controllers .btn-setting {
+.ui-panel .ui-controllers .btn-edit {
   display: block;
   position: relative;
   margin: 0 2px;
@@ -65,7 +83,7 @@
   color: #ffffff;
 }
 
-.ui-panel .ui-controllers .btn-edit {
+.ui-panel .ui-controllers .btn-setting {
   display: block;
   position: relative;
   margin: 0 2px;
