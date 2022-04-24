@@ -65,6 +65,14 @@
   background-color: rgba(244, 161, 255, 0.3);
 }
 
+.ui-panel .list-images .item-image:first-child {
+  margin: 0 auto 5px auto;
+}
+
+.ui-panel .list-images .item-image:last-child {
+  margin: 5px auto 0 auto;
+}
+
 .ui-panel .list-images .item-image .ico-selected {
   flex-shrink: 0;
   position: relative;
