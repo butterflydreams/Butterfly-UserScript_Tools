@@ -15,18 +15,21 @@ class UIImage {
     this._el.root.setAttribute("class", "item-image");
     this._el.root.setAttribute("href", "javascript:void(0)");
     this._gesture = new Hammer.Manager(this._el.root);
+    this._gesture.add(new Hammer.Tap({ event: "tripletap", taps: 3 }));
     this._gesture.add(new Hammer.Tap({ event: "doubletap", taps: 2 }));
-    this._gesture.add(new Hammer.Tap({ event: "singletap" }));
+    this._gesture.add(new Hammer.Tap({ event: "singletap", taps: 1 }));
     this._gesture.add(new Hammer.Press({ event: "press" }));
+    this._gesture.get("tripletap").recognizeWith("doubletap");
+    this._gesture.get("tripletap").recognizeWith("singletap");
     this._gesture.get("doubletap").recognizeWith("singletap");
+    this._gesture.get("singletap").requireFailure("tripletap");
     this._gesture.get("singletap").requireFailure("doubletap");
+    this._gesture.get("doubletap").requireFailure("tripletap");
     this._gesture.on("singletap", this._OnClickHandler.bind(this));
     this._gesture.on("doubletap", this._OnDoubleclickHandler.bind(this));
+    this._gesture.on("tripletap", this._OnTripleclickHandler.bind(this));
     this._gesture.on("press", this._OnPressHandler.bind(this));
     elparent.appendChild(this._el.root);
-    this._el.select = document.createElement("div");
-    this._el.select.setAttribute("class", "ico-selected");
-    this._el.root.appendChild(this._el.select);
     this._el.icon = document.createElement("img");
     this._el.icon.setAttribute("tag", "ui-mydownloader");
     this._el.icon.setAttribute("class", "ico-image");
@@ -34,7 +37,7 @@ class UIImage {
     this._el.root.appendChild(this._el.icon);
     this._el.link = document.createElement("div");
     this._el.link.setAttribute("class", "txt-link");
-    this._el.link.innerHTML = this._ui.src;
+    this._el.link.innerText = this._ui.src;
     this._el.root.appendChild(this._el.link);
   }
 
@@ -44,33 +47,46 @@ class UIImage {
   }
 
   _OnClickHandler(event) {
-    this._isselect = !this._isselect;
-    this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
-    this._el.select.style.backgroundColor = this._isselect == true ? "#00ff00" : "#a9a9a9";
+    if (IS_EDIT_MODE == true) {
+      // Selecting.
+      this._isselect = !this._isselect;
+      this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
+    } else {
+      // Scrolling.
+    }
   }
   _OnDoubleclickHandler(event) {
-    let dlgPreview = document.createElement("div");
-    dlgPreview.setAttribute("class", "dlg-preview");
-    dlgPreview.onclick = function () {
-      dlgPreview.remove();
-    };
-    UIROOT.appendChild(dlgPreview);
-    let uiPreview = document.createElement("div");
-    uiPreview.setAttribute("class", "ui-preview");
-    dlgPreview.appendChild(uiPreview);
-    let icoPreview = document.createElement("img");
-    icoPreview.setAttribute("class", "ico-image");
-    icoPreview.setAttribute("src", this._ui.src);
-    uiPreview.appendChild(icoPreview);
-    let btnClose = document.createElement("a");
-    btnClose.setAttribute("class", "btn-close");
-    btnClose.setAttribute("href", "javascript:void(0)");
-    btnClose.onclick = function () {
-      dlgPreview.remove();
-    };
-    uiPreview.appendChild(btnClose);
+    if (IS_EDIT_MODE == true) {
+    } else {
+      // Previewing.
+      let dlgPreview = document.createElement("div");
+      dlgPreview.setAttribute("class", "dlg-preview");
+      dlgPreview.onclick = function () {
+        dlgPreview.remove();
+      };
+      UIROOT.appendChild(dlgPreview);
+      let uiPreview = document.createElement("div");
+      uiPreview.setAttribute("class", "ui-preview");
+      dlgPreview.appendChild(uiPreview);
+      let icoPreview = document.createElement("img");
+      icoPreview.setAttribute("class", "ico-image");
+      icoPreview.setAttribute("src", this._ui.src);
+      uiPreview.appendChild(icoPreview);
+      let btnClose = document.createElement("a");
+      btnClose.setAttribute("class", "btn-close");
+      btnClose.setAttribute("href", "javascript:void(0)");
+      btnClose.onclick = function () {
+        dlgPreview.remove();
+      };
+      uiPreview.appendChild(btnClose);
+    }
   }
-  _OnPressHandler(event) {}
+  _OnTripleclickHandler(event) {
+    console.log("On triple clicking!");
+  }
+  _OnPressHandler(event) {
+    console.log("On pressing!");
+  }
 }
 
 class UIImages {
@@ -118,22 +134,51 @@ class UIImages {
   }
 }
 
+var IS_EDIT_MODE = false;
+var IS_SHOW_PANEL = false;
 var UIROOT = document.createElement("div");
 UIROOT.setAttribute("class", "ui-imagesdownloader");
 document.body.appendChild(UIROOT);
-var IS_SHOW_PANEL = false;
 let uiPanel = document.createElement("div");
 uiPanel.setAttribute("class", "ui-panel");
 uiPanel.style.display = IS_SHOW_PANEL == true ? "block" : "none";
 UIROOT.appendChild(uiPanel);
+let uiControllers = document.createElement("div");
+uiControllers.setAttribute("class", "ui-controllers");
+uiPanel.appendChild(uiControllers);
+let btnSetting = document.createElement("a");
+btnSetting.setAttribute("class", "btn-setting");
+btnSetting.setAttribute("href", "javascript:void(0)");
+btnSetting.innerText = "Setting";
+btnSetting.onclick = function () {
+  console.log("On setting!");
+};
+uiControllers.appendChild(btnSetting);
+let btnEdit = document.createElement("a");
+btnEdit.setAttribute("class", "btn-edit");
+btnEdit.setAttribute("href", "javascript:void(0)");
+btnEdit.innerText = "Edit";
+btnEdit.onclick = function () {
+  IS_EDIT_MODE = !IS_EDIT_MODE;
+  btnEdit.innerText = IS_EDIT_MODE == true ? "Unedit" : "Edit";
+};
+uiControllers.appendChild(btnEdit);
+let btnDownload = document.createElement("a");
+btnDownload.setAttribute("class", "btn-download");
+btnDownload.setAttribute("href", "javascript:void(0)");
+btnDownload.innerText = "Download";
+btnDownload.onclick = function () {
+  console.log("On download!");
+};
+uiControllers.appendChild(btnDownload);
 var UIIMAGES = UIImages.GetInstance(uiPanel);
 let btnSwitcher = document.createElement("a");
 btnSwitcher.setAttribute("class", "btn-switcher");
 btnSwitcher.setAttribute("href", "javascript:void(0)");
-btnSwitcher.innerHTML = IS_SHOW_PANEL == true ? "Hide" : "Show";
+btnSwitcher.innerText = IS_SHOW_PANEL == true ? "Hide" : "Show";
 btnSwitcher.onclick = function () {
   IS_SHOW_PANEL = !IS_SHOW_PANEL;
-  btnSwitcher.innerHTML = IS_SHOW_PANEL == true ? "Hide" : "Show";
+  btnSwitcher.innerText = IS_SHOW_PANEL == true ? "Hide" : "Show";
   uiPanel.style.display = IS_SHOW_PANEL == true ? "block" : "none";
   if (IS_SHOW_PANEL == true) {
     UIIMAGES.CreateUIImages();
