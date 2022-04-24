@@ -1,7 +1,11 @@
 GM_addStyle(GM_getResourceText("Style"));
 
-class Image {
+class UIImage {
   constructor(unid, ui, elparent) {
+    this.Add(unid, ui, elparent);
+  }
+
+  Add(unid, ui, elparent) {
     this._unid = unid;
     this._isselect = true;
     this._ui = ui;
@@ -34,6 +38,11 @@ class Image {
     this._el.root.appendChild(this._el.link);
   }
 
+  Remove() {
+    this._ui.removeAttribute("tag");
+    this._el.root.remove();
+  }
+
   _OnClickHandler(event) {
     this._isselect = !this._isselect;
     this._el.root.style.border = this._isselect == true ? "solid 2px #ff0000" : "none";
@@ -64,7 +73,7 @@ class Image {
   _OnPressHandler(event) {}
 }
 
-class Images {
+class UIImages {
   constructor(elparent) {
     this._data = new Map();
     this._el = document.createElement("div");
@@ -74,31 +83,36 @@ class Images {
 
   static GetInstance(elparent) {
     if (!this._instance) {
-      this._instance = new Images(elparent);
+      this._instance = new UIImages(elparent);
     }
     return this._instance;
   }
 
-  CreateImages() {
+  CreateUIImages() {
     let images = document.getElementsByTagName("img");
     Array.from(images).forEach((image) => {
       if ("getAttribute" in image && !image.getAttribute("tag")) {
-        let unid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-          let dt = new Date().getTime();
-          let r = (dt + Math.random() * 16) % 16 | 0;
-          dt = Math.floor(dt / 16);
-          return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
-        });
-        image.setAttribute("tag", unid);
-        this._data.set(unid, new Image(unid, image, this._el));
+        let img = new Image();
+        img.src = image.src;
+        img.onload = () => {
+          if (img.fileSize > 0 || (img.width > 0 && img.height > 0)) {
+            let unid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+              let dt = new Date().getTime();
+              let r = (dt + Math.random() * 16) % 16 | 0;
+              dt = Math.floor(dt / 16);
+              return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
+            });
+            image.setAttribute("tag", unid);
+            this._data.set(unid, new UIImage(unid, image, this._el));
+          }
+        };
       }
     });
   }
 
-  DestroyImages() {
+  DestroyUIImages() {
     this._data.forEach((value, key) => {
-      value._ui.removeAttribute("tag");
-      value._el.root.remove();
+      value.Remove();
     });
     this._data.clear();
   }
@@ -112,7 +126,7 @@ let uiPanel = document.createElement("div");
 uiPanel.setAttribute("class", "ui-panel");
 uiPanel.style.display = IS_SHOW_PANEL == true ? "block" : "none";
 UIROOT.appendChild(uiPanel);
-var IMAGES = Images.GetInstance(uiPanel);
+var UIIMAGES = UIImages.GetInstance(uiPanel);
 let btnSwitcher = document.createElement("a");
 btnSwitcher.setAttribute("class", "btn-switcher");
 btnSwitcher.setAttribute("href", "javascript:void(0)");
@@ -122,13 +136,14 @@ btnSwitcher.onclick = function () {
   btnSwitcher.innerHTML = IS_SHOW_PANEL == true ? "Hide" : "Show";
   uiPanel.style.display = IS_SHOW_PANEL == true ? "block" : "none";
   if (IS_SHOW_PANEL == true) {
-    IMAGES.CreateImages();
+    UIIMAGES.CreateUIImages();
   } else {
-    IMAGES.DestroyImages();
+    UIIMAGES.DestroyUIImages();
   }
 };
 let dragx = 0;
 let dragy = 0;
+let offset = 50; // Offset bottom between uiPanel and btnSwitcher.
 let isdrag = false;
 let drag = new Hammer(btnSwitcher);
 drag.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 }));
@@ -141,10 +156,12 @@ drag.on("pan", function (event) {
   }
   let x = event.deltaX + dragx;
   let y = event.deltaY + dragy;
-  target.style.right = Math.abs(x) - 40 + "px";
-  target.style.bottom = Math.abs(y) - 40 + "px";
-  uiPanel.style.right = Math.abs(x) - 40 + "px";
-  uiPanel.style.bottom = Math.abs(y) + 10 + "px";
+  let w = target.offsetWidth;
+  let h = target.offsetHeight;
+  target.style.right = `${Math.abs(x) - w}px`;
+  target.style.bottom = `${Math.abs(y) - h}px`;
+  uiPanel.style.right = `${Math.abs(x) - w}px`;
+  uiPanel.style.bottom = `${Math.abs(y) - h + offset}px`;
   if (event.isFinal == true) {
     isdrag = false;
   }
@@ -153,6 +170,6 @@ UIROOT.appendChild(btnSwitcher);
 
 window.onscroll = function () {
   if (IS_SHOW_PANEL == true) {
-    IMAGES.CreateImages();
+    UIIMAGES.CreateUIImages();
   }
 };
